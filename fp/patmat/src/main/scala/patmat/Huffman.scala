@@ -116,12 +116,14 @@ object Huffman {
     * unchanged.
     */
   def combine(trees: List[CodeTree]): List[CodeTree] = {
-    if (trees.size <= 2) return trees
-    val first = trees.head
-    val second = trees(1)
-    val node = Fork(first, second, chars(first) ::: chars(second), weight(first) + weight(second))
-    val rest = List(node) ::: trees.tail.tail
-    combine(rest)
+    if (trees.size <= 2) trees
+    else {
+      val first = trees.head
+      val second = trees(1)
+      val node = Fork(first, second, chars(first) ::: chars(second), weight(first) + weight(second))
+      val rest = List(node) ::: trees.tail.tail
+      combine(rest)
+    }
   }
 
   /**
@@ -171,8 +173,9 @@ object Huffman {
     def decodeTailRec(currentTree: CodeTree, bits: List[Bit]): List[Char] =
       currentTree match {
         case l: Leaf =>
-          if (bits.isEmpty) return List(l.char)
-          List(l.char) ::: decodeTailRec(tree, bits)
+          if (bits.isEmpty) List(l.char)
+          else
+            List(l.char) ::: decodeTailRec(tree, bits)
         case f: Fork =>
           val next = if (bits.head == 0) f.left else f.right
           decodeTailRec(next, bits.tail)
@@ -207,18 +210,17 @@ object Huffman {
     * into a sequence of bits.
     */
   def encode(tree: CodeTree)(text: List[Char]): List[Bit] = {
-    def encodeTailRec(currentTree: CodeTree, text: List[Char], bits: List[Bit]): List[Bit] = {
-      if (text.isEmpty) return bits
-
-      currentTree match {
-        case _: Leaf =>
-          bits ::: encodeTailRec(tree, text.tail, List())
-        case f: Fork =>
-          val bit = if (chars(f.left).contains(text.head)) 0 else 1
-          val next = if (bit == 0) f.left else f.right
-          List(bit) ::: encodeTailRec(next, text, bits)
-      }
-    }
+    def encodeTailRec(currentTree: CodeTree, text: List[Char], bits: List[Bit]): List[Bit] =
+      if (text.isEmpty) bits
+      else
+        currentTree match {
+          case _: Leaf =>
+            bits ::: encodeTailRec(tree, text.tail, List())
+          case f: Fork =>
+            val bit = if (chars(f.left).contains(text.head)) 0 else 1
+            val next = if (bit == 0) f.left else f.right
+            List(bit) ::: encodeTailRec(next, text, bits)
+        }
 
     encodeTailRec(tree, text, List())
   }
