@@ -87,22 +87,12 @@ object Anagrams {
     * in the example above could have been displayed in some other order.
     */
   def combinations(occurrences: Occurrences): List[Occurrences] = {
-    def combinations(currentOccurrence: (Char, Int)): List[Occurrences] =
-      for {
-        occurrence <- occurrences
-        count <- 1 to occurrence._2
-        if currentOccurrence._1 != occurrence._1
-      } yield List(currentOccurrence, occurrence.copy(_2 = count))
+    val parts: List[Occurrences] = occurrences
+      .map(e => (for (count <- 1 to e._2) yield (e._1, count)).toList)
 
-    val allCombinations = for {
-      occurrence <- occurrences
-      count <- 1 to occurrence._2
-    } yield List(occurrence.copy(_2 = count)) :: combinations(occurrence.copy(_2 = count))
-
-    List(List()) ++ allCombinations
-      .flatten
-      .distinct
-      .map(_.sortWith((x, y) => x._1 < y._1))
+    parts.foldRight(List[Occurrences](List())) { (part, acc) =>
+      acc ++ (for (occ1 <- part; occ2 <- acc) yield occ1 :: occ2)
+    }
   }
 
   /** Subtracts occurrence list `y` from occurrence list `x`.
