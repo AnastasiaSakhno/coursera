@@ -105,7 +105,13 @@ object Anagrams {
     * Note: the resulting value is an occurrence - meaning it is sorted
     * and has no zero-entries.
     */
-  def subtract(x: Occurrences, y: Occurrences): Occurrences = ???
+  def subtract(x: Occurrences, y: Occurrences): Occurrences =
+    y.foldLeft(x) { (acc, occ) =>
+      for {
+        ex <- acc
+      } yield if (ex._1 == occ._1) (ex._1, ex._2 - occ._2) else ex
+    }.filter(_._2 > 0)
+      .sorted
 
   /** Returns a list of all anagram sentences of the given sentence.
     *
