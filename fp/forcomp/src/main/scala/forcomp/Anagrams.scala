@@ -42,7 +42,7 @@ object Anagrams {
       .sortWith((x, y) => x._1 < y._1)
 
   /** Converts a sentence into its character occurrence list. */
-  def sentenceOccurrences(s: Sentence): Occurrences = s.flatMap(wordOccurrences)
+  def sentenceOccurrences(s: Sentence): Occurrences = wordOccurrences(s.flatten.mkString)
 
   /** The `dictionaryByOccurrences` is a `Map` from different occurrences to a sequence of all
     * the words that have that occurrence count.
@@ -154,5 +154,18 @@ object Anagrams {
     *
     * Note: There is only one anagram of an empty sentence.
     */
-  def sentenceAnagrams(sentence: Sentence): List[Sentence] = ???
+  def sentenceAnagrams(sentence: Sentence): List[Sentence] = {
+    def sentenceAnagramsRec(occurrences: Occurrences): List[Sentence] = {
+      if (occurrences.isEmpty) List(List())
+      else {
+        for {
+          combination <- combinations(occurrences)
+          word <- dictionaryByOccurrences(combination)
+          rest <- sentenceAnagramsRec(subtract(occurrences, combination))
+        } yield word :: rest
+      }
+    }
+
+    sentenceAnagramsRec(sentenceOccurrences(sentence))
+  }
 }
